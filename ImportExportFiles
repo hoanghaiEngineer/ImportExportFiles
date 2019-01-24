@@ -1,0 +1,460 @@
+//Export CSV Example
+public FileResult ExportCSV(string appIdentityUsersId)
+        {
+            var human = _humanManagementRepository.HumanDetail(appIdentityUsersId);
+
+            var fileContent = new StringBuilder();
+
+            //thong tin co ban
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "基本情報", "", ""));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "ID", human.UserId));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "判別ID", human.IdDS));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "ステータス", human.Status));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "氏名", HandleSpecialCharacters(human.FullName)));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "氏名（ふりがな）", HandleSpecialCharacters(human.FullNameFurigana)));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "氏名（ローマ字）", HandleSpecialCharacters(human.FullNameRoma)));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "性別", human.Gender));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "生年月日", human.Birthday));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "国籍", human.Nationality));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "居住国", human.CountryCurrent));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "住んでいる都市", HandleSpecialCharacters(human.CurrentCity)));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "現住所", HandleSpecialCharacters(human.Address)));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "電話番号", human.PhoneNumber));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "郵便番号", HandleSpecialCharacters(human.ZipCode)));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "現在年収", human.IncomeCurrent));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "メールアドレス", human.Email));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "日本の現在ビザ", human.VisaCurrent));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "登録日", human.RegisterDate));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "更新日", human.UpdateDate));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "最新成約日", human.LatestClosingDate));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "フラグ数", human.FlagNumber));
+
+            //qua trinh hoc tap
+	        if (human.EducationProcesses != null && human.EducationProcesses.Count > 0)
+	        {
+	            int index = 1;
+	            foreach (var educationProcess in human.EducationProcesses)
+	            {
+	                if (human.EducationProcesses.Count == 1)
+	                {
+	                    fileContent.AppendLine(string.Format("{0},{1},{2}", "学歴", "", ""));
+	                }
+	                else
+	                {
+	                    fileContent.AppendLine(string.Format("学歴{0},{1},{2}", index++, "", ""));
+                    }
+
+	                fileContent.AppendLine(string.Format("{0},{1},{2}", "", "学校種別", educationProcess.SchoolType));
+	                fileContent.AppendLine(string.Format("{0},{1},{2}", "", "卒業年月（卒業見込み年月）", educationProcess.GraduationYear));
+	                fileContent.AppendLine(string.Format("{0},{1},{2}", "", "学校名", HandleSpecialCharacters(educationProcess.SchoolName)));
+	                fileContent.AppendLine(string.Format("{0},{1},{2}", "", "学部/学科/専攻", HandleSpecialCharacters(educationProcess.Major)));
+	                fileContent.AppendLine(string.Format("{0},{1},{2}", "", "CGPA", HandleSpecialCharacters(educationProcess.CGPA)));
+	                fileContent.AppendLine(string.Format("{0},{1},{2}", "", "得意な科目", HandleSpecialCharacters(educationProcess.BestSubject)));
+                    
+	                if (educationProcess.SkillLearned.Count > 0)
+	                {
+	                    int skillIndex = 1;
+	                    if (educationProcess.SkillLearned.Count == 1)
+	                    {
+	                        fileContent.AppendLine(string.Format("{0},{1},{2} - {3}", "", "学んだスキル",
+	                            educationProcess.SkillLearned[0].ParentNameJa,
+	                            educationProcess.SkillLearned[0].ChildNameJa));
+	                    }
+	                    else
+	                    {
+	                        foreach (var skill in educationProcess.SkillLearned)
+	                        {
+	                            if (skillIndex == 1)
+	                            {
+	                                fileContent.AppendLine(string.Format("{0},{1},\"{2} - {3}", "", "学んだスキル",
+	                                    skill.ParentNameJa, skill.ChildNameJa));
+	                            }
+	                            else
+	                            {
+	                                if (skillIndex < educationProcess.SkillLearned.Count)
+	                                {
+	                                    fileContent.AppendLine(string.Format("{0} - {1}", skill.ParentNameJa, skill.ChildNameJa));
+	                                }
+	                                else
+	                                {
+	                                    fileContent.AppendLine(string.Format("{0} - {1}\"", skill.ParentNameJa, skill.ChildNameJa));
+	                                }
+	                            }
+	                            skillIndex++;
+	                        }
+                        }
+	                }
+
+	                if (educationProcess.LstProject != null && educationProcess.LstProject.Count > 0)
+	                {
+	                    int projectIndex = 1;
+	                    foreach (var project in educationProcess.LstProject)
+	                    {
+	                        if (educationProcess.LstProject.Count == 1)
+	                        {
+	                            fileContent.AppendLine(string.Format("{0},{1},{2}", "", "プロジェクト", ""));
+	                        }
+	                        else
+	                        {
+	                            fileContent.AppendLine(string.Format("{0},プロジェクト{1},{2}", "", projectIndex++, ""));
+	                        }
+
+	                        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "プロジェクト名", HandleSpecialCharacters(project.ProjectName)));
+	                        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "期間", project.TimeOfProject));
+	                        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "役割", HandleSpecialCharacters(project.Role)));
+	                        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "チーム人数", project.TeamSize));
+	                        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "どこの国のプロジェクトか", project.CountryProject));
+
+	                        if (project.TechnicalSkill.Count > 0)
+	                        {
+	                            int skillIndex = 1;
+	                            if (project.TechnicalSkill.Count == 1)
+	                            {
+	                                fileContent.AppendLine(string.Format("{0},{1},{2} - {3}", "", "使用した技術",
+	                                    project.TechnicalSkill[0].ParentNameJa,
+	                                    project.TechnicalSkill[0].ChildNameJa));
+	                            }
+	                            else
+	                            {
+	                                foreach (var skill in project.TechnicalSkill)
+	                                {
+	                                    if (skillIndex == 1)
+	                                    {
+	                                        fileContent.AppendLine(string.Format("{0},{1},\"{2} - {3}", "", "使用した技術",
+	                                            skill.ParentNameJa, skill.ChildNameJa));
+	                                    }
+	                                    else
+	                                    {
+	                                        if (skillIndex < project.TechnicalSkill.Count)
+	                                        {
+	                                            fileContent.AppendLine(string.Format("{0} - {1}", skill.ParentNameJa, skill.ChildNameJa));
+	                                        }
+	                                        else
+	                                        {
+	                                            fileContent.AppendLine(string.Format("{0} - {1}\"", skill.ParentNameJa, skill.ChildNameJa));
+	                                        }
+	                                    }
+	                                    skillIndex++;
+	                                }
+                                }
+	                        }
+
+	                        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "制作物URL", HandleSpecialCharacters(project.UrlProduct)));
+	                        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "プロジェクト内容", HandleSpecialCharacters(project.ProjectDetail)));
+                        }
+	                }
+	                else
+	                {
+	                    fileContent.AppendLine(string.Format("{0},{1},{2}", "", "プロジェクト", ""));
+	                    fileContent.AppendLine(string.Format("{0},{1},{2}", "", "", "データがありません。"));
+                    }
+                }
+	        }
+	        else
+	        {
+	            fileContent.AppendLine(string.Format("{0},{1},{2}", "学歴", "", ""));
+	            fileContent.AppendLine(string.Format("{0},{1},{2}", "", "データがありません。", ""));
+            }
+
+
+            //qua trinh lam viec
+            if (human.WorkProcesses != null && human.WorkProcesses.Count > 0)
+            {
+                int index = 1;
+                foreach (var workProcess in human.WorkProcesses)
+                {
+                    if (human.WorkProcesses.Count == 1)
+                    {
+                        fileContent.AppendLine(string.Format("{0},{1},{2}", "職務経歴", "", ""));
+                    }
+                    else
+                    {
+                        fileContent.AppendLine(string.Format("職務経歴{0},{1},{2}", index++, "", ""));
+                    }
+
+                    fileContent.AppendLine(string.Format("{0},{1},{2}", "", "会社名", HandleSpecialCharacters(workProcess.CompanyName)));
+                    fileContent.AppendLine(string.Format("{0},{1},{2}", "", "勤務国", workProcess.WorkingCountry));
+                    fileContent.AppendLine(string.Format("{0},{1},{2}", "", "勤務期間", workProcess.WorkDate));
+                    fileContent.AppendLine(string.Format("{0},{1},{2}", "", "職種", workProcess.JobType));
+                    fileContent.AppendLine(string.Format("{0},{1},{2}", "", "雇用形態", workProcess.RecruitmentType));
+                    fileContent.AppendLine(string.Format("{0},{1},{2}", "", "現在の状況", workProcess.CurrentOccupation));
+
+                    if (workProcess.LstProject != null && workProcess.LstProject.Count > 0)
+                    {
+                        int projectIndex = 1;
+                        foreach (var project in workProcess.LstProject)
+                        {
+                            if (workProcess.LstProject.Count == 1)
+                            {
+                                fileContent.AppendLine(string.Format("{0},{1},{2}", "", "プロジェクト", ""));
+                            }
+                            else
+                            {
+                                fileContent.AppendLine(string.Format("{0},プロジェクト{1},{2}", "", projectIndex++, ""));
+                            }
+
+                            fileContent.AppendLine(string.Format("{0},{1},{2}", "", "プロジェクト名", HandleSpecialCharacters(project.ProjectName)));
+                            fileContent.AppendLine(string.Format("{0},{1},{2}", "", "期間", project.TimeOfProject));
+                            fileContent.AppendLine(string.Format("{0},{1},{2}", "", "役割", HandleSpecialCharacters(project.Role)));
+                            fileContent.AppendLine(string.Format("{0},{1},{2}", "", "チーム人数", project.TeamSize));
+
+                            if (project.TechnicalSkill.Count > 0)
+                            {
+                                int skillIndex = 1;
+                                if (project.TechnicalSkill.Count == 1)
+                                {
+                                    fileContent.AppendLine(string.Format("{0},{1},{2} - {3}", "", "使用した技術",
+                                        project.TechnicalSkill[0].ParentNameJa,
+                                        project.TechnicalSkill[0].ChildNameJa));
+                                }
+                                else
+                                {
+                                    foreach (var skill in project.TechnicalSkill)
+                                    {
+                                        if (skillIndex == 1)
+                                        {
+                                            fileContent.AppendLine(string.Format("{0},{1},\"{2} - {3}", "", "使用した技術",
+                                                skill.ParentNameJa, skill.ChildNameJa));
+                                        }
+                                        else
+                                        {
+                                            if (skillIndex < project.TechnicalSkill.Count)
+                                            {
+                                                fileContent.AppendLine(string.Format("{0} - {1}", skill.ParentNameJa, skill.ChildNameJa));
+                                            }
+                                            else
+                                            {
+                                                fileContent.AppendLine(string.Format("{0} - {1}\"", skill.ParentNameJa, skill.ChildNameJa));
+                                            }
+                                        }
+                                        skillIndex++;
+                                    }
+                                }
+
+                            }
+
+
+                            fileContent.AppendLine(string.Format("{0},{1},{2}", "", "依頼先国", project.CountryProject));
+                            fileContent.AppendLine(string.Format("{0},{1},{2}", "", "制作物URL", HandleSpecialCharacters(project.UrlProduct)));
+                            fileContent.AppendLine(string.Format("{0},{1},{2}", "", "プロジェクト内容", HandleSpecialCharacters(project.ProjectDetail)));
+                        }
+                    }
+                    else
+                    {
+                        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "プロジェクト", ""));
+                        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "", "データがありません。"));
+                    }
+                }
+            }
+            else
+            {
+                fileContent.AppendLine(string.Format("{0},{1},{2}", "職務経歴", "", ""));
+                fileContent.AppendLine(string.Format("{0},{1},{2}", "", "データがありません。", ""));
+            }
+
+	        if (human.LstSkill != null && human.LstSkill.Count > 0)
+	        {
+	            int skillIndex = 1;
+	            foreach (var skill in human.LstSkill)
+	            {
+	                if (human.LstSkill.Count == 1)
+	                {
+	                    fileContent.AppendLine(string.Format("{0},{1},{2}", "スキル", "", ""));
+	                }
+	                else
+	                {
+	                    fileContent.AppendLine(string.Format("スキル{0},{1},{2}", skillIndex++, "", ""));
+	                }
+
+	                fileContent.AppendLine(string.Format("{0},{1},{2} - {3}", "", "スキル名", skill.ParentNameJa, skill.ChildNameJa));
+	                fileContent.AppendLine(string.Format("{0},{1},{2}", "", "スキル名（その他）", HandleSpecialCharacters(skill.OtherSkill)));
+	                fileContent.AppendLine(string.Format("{0},{1},{2}", "", "得意スキルFLG", skill.FlagSkill ? "YES" : "NO"));
+
+	                fileContent.AppendLine(string.Format("{0},{1},{2}", "", "経験年数", ""));
+	                fileContent.AppendLine(string.Format("{0},{1},{2}", "", "実務", skill.RealityExp));
+	                fileContent.AppendLine(string.Format("{0},{1},{2}", "", "インターン", skill.InternExp));
+	                fileContent.AppendLine(string.Format("{0},{1},{2}", "", "スキル習得時間合計", skill.SchoolExp));
+                }
+	        }
+	        else
+	        {
+	            fileContent.AppendLine(string.Format("{0},{1},{2}", "スキル", "", ""));
+	            fileContent.AppendLine(string.Format("{0},{1},{2}", "", "データがありません。", ""));
+            }
+
+	        if (human.TestResultName != null)
+	        {
+	            if (human.TestResultPoint != null)
+	            {
+	                fileContent.AppendLine(string.Format("{0},{1},{2}", "", "テスト結果（トラック）", string.Format("\"テスト名: {0}", HandleSpecialCharacters(human.TestResultName))));
+	                fileContent.AppendLine(string.Format("点: {0}\"", human.TestResultPoint));
+	            }
+	            else
+	            {
+	                fileContent.AppendLine(string.Format("{0},{1},{2}", "", "テスト結果（トラック）", string.Format("テスト名: {0}", HandleSpecialCharacters(human.TestResultName))));
+	            }
+	        }
+	        else
+	        {
+	            fileContent.AppendLine(string.Format("{0},{1},{2}", "", "テスト結果（トラック）", ""));
+	        }
+
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "テスト実施日", human.TestDate));
+
+
+            //language
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "語学力", "", ""));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "英語レベル", human.EnglishLevel));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "日本語レベル", human.JapaneseLevel));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "その他話せる言語", HandleSpecialCharacters(human.OtherLanguage)));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "日本語検定", human.JapaneseCertificate));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "第一母国語", HandleSpecialCharacters(human.MotherLanguage)));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "TOEIC点数", human.TOIECScore));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "TOEIC取得年", human.TOEICGetDate));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "TOEFL点数", human.TOEFLScore));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "TOEFL取得年", human.TOEFLGetDate));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "留学経験", HandleSpecialCharacters(human.StudyAbroadExperience)));
+
+            //bang cap
+	        if (human.LstQualification != null && human.LstQualification.Count > 0)
+	        {
+	            int qualiIndex = 1;
+	            foreach (var qualification in human.LstQualification)
+	            {
+	                if (human.LstQualification.Count == 1)
+	                {
+	                    fileContent.AppendLine(string.Format("{0},{1},{2}", "資格", "", ""));
+	                }
+	                else
+	                {
+	                    fileContent.AppendLine(string.Format("資格{0},{1},{2}", qualiIndex++, "", ""));
+	                }
+
+	                fileContent.AppendLine(string.Format("{0},{1},{2}", "", "資格名", HandleSpecialCharacters(qualification.DegreeDiplomaName)));
+	                fileContent.AppendLine(string.Format("{0},{1},{2}", "", "取得日", qualification.DateOfIssues));
+	            }
+            }
+	        else
+	        {
+	            fileContent.AppendLine(string.Format("{0},{1},{2}", "資格", "", ""));
+	            fileContent.AppendLine(string.Format("{0},{1},{2}", "", "データがありません。", ""));
+            }
+
+            //khen thuong
+	        if (human.LstReward != null && human.LstReward.Count > 0)
+	        {
+	            int rewardIndex = 1;
+	            foreach (var reward in human.LstReward)
+	            {
+	                if (human.LstReward.Count == 1)
+	                {
+	                    fileContent.AppendLine(string.Format("{0},{1},{2}", "表彰", "", ""));
+	                }
+	                else
+	                {
+	                    fileContent.AppendLine(string.Format("表彰{0},{1},{2}", rewardIndex++, "", ""));
+	                }
+
+	                fileContent.AppendLine(string.Format("{0},{1},{2}", "", "表彰", HandleSpecialCharacters(reward.RewardName)));
+	                fileContent.AppendLine(string.Format("{0},{1},{2}", "", "受賞年月日", reward.AwardDate));
+	            }
+	        }
+	        else
+	        {
+	            fileContent.AppendLine(string.Format("{0},{1},{2}", "表彰", "", ""));
+	            fileContent.AppendLine(string.Format("{0},{1},{2}", "", "データがありません。", ""));
+	        }
+
+            //cong viec mong muon
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "希望職種", "", ""));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "希望職種1", human.JobObjectiveFirst));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "希望職種2", human.JobObjectiveSecond));
+
+            //noi lam viec mong muon
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "希望勤務地", "", ""));
+
+	        if (human.PreferredWorkPlace.Length > 0)
+	        {
+	            if (human.PreferredWorkPlace.Length == 1)
+	            {
+	                fileContent.AppendLine(string.Format("{0},{1},{2}", "", "希望勤務地", human.PreferredWorkPlace[0]));
+	            }
+	            else
+	            {
+	                fileContent.AppendLine(string.Format("{0},{1},\"{2}", "", "希望勤務地", human.PreferredWorkPlace[0]));
+	                for (int i = 1; i < human.PreferredWorkPlace.Length; i++)
+	                {
+	                    if (i == human.PreferredWorkPlace.Length - 1)
+	                    {
+	                        fileContent.AppendLine(string.Format("{0}\"",human.PreferredWorkPlace[i]));
+	                    }
+	                    else
+	                    {
+	                        fileContent.AppendLine(human.PreferredWorkPlace[i]);
+                        }
+	                }
+                }
+	        }
+	        else
+	        {
+	            fileContent.AppendLine(string.Format("{0},{1},{2}", "", "希望勤務地", ""));
+            }
+
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "その他", HandleSpecialCharacters(human.OtherPreferredWorkPlace)));
+
+
+            //dieu kien mong muon khac
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "その他希望条件", "", ""));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "希望年収", human.DesiredSalary));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "最低希望年収", human.MinimumDesiredAnnualIncome));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "転職希望時期", human.TimeToChangeJob));
+
+	        if (human.ProgrammingLanguages != null && human.ProgrammingLanguages.Count > 0)
+	        {
+	            int langIndex = 1;
+	            if (human.ProgrammingLanguages.Count == 1)
+	            {
+	                fileContent.AppendLine(string.Format("{0},{1},{2} - {3}", "", "関わりたい開発言語", human.ProgrammingLanguages[0].ParentNameJa, human.ProgrammingLanguages[0].ChildNameJa));
+	            }
+	            else
+	            {
+	                foreach (var languge in human.ProgrammingLanguages)
+	                {
+	                    if (langIndex == 1)
+	                    {
+	                        fileContent.AppendLine(string.Format("{0},{1},\"{2} - {3}", "", "関わりたい開発言語", languge.ParentNameJa, languge.ChildNameJa));
+	                    }
+	                    else
+	                    {
+	                        if (langIndex < human.ProgrammingLanguages.Count)
+	                        {
+	                            fileContent.AppendLine(string.Format("{0} - {1}", languge.ParentNameJa, languge.ChildNameJa));
+	                        }
+	                        else
+	                        {
+	                            fileContent.AppendLine(string.Format("{0} - {1}\"", languge.ParentNameJa, languge.ChildNameJa));
+	                        }
+	                    }
+	                    langIndex++;
+	                }
+                }
+	        }
+
+
+            //remark
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "備考", "", ""));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "備考欄", HandleSpecialCharacters(human.Remark)));
+
+
+            //upload
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "アップロード", "", ""));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "レジュメ", string.Format("{0}.{1}", human.ResumeFileName, human.ResumeExtension)));
+
+            //manager
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "管理", "", ""));
+	        fileContent.AppendLine(string.Format("{0},{1},{2}", "", "全研担当者", human.UserZenken));
+
+            var finalContent = Encoding.GetEncoding(932).GetBytes(fileContent.ToString());
+
+            return File(finalContent, "text/csv", string.Format("{0}-info-{1}.csv", human.FullName, DateTime.Now.ToString()));
+	    }
