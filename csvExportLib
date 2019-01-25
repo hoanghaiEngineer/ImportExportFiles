@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace Cosmenist.Utility.Commons
+namespace CSVExport.Utility.Commons
 {
     public class CsvExport
     {
@@ -40,7 +40,7 @@ namespace Cosmenist.Utility.Commons
         private readonly bool includeColumnSeparatorDefinitionPreamble;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Cosmenist.Utility.Commons.CsvExport"/> class.
+        /// Initializes a new instance of the <see cref="CSVExport.Utility.Commons.CsvExport"/> class.
         /// </summary>
         /// <param name="columnSeparator">
         /// The string used to separate columns in the output.
